@@ -9,8 +9,8 @@ This allows you to create RESTful interfaces on IoT (Internet of Things) devices
 
 In the box:
 
-- **<conatra.h>** // a Sinatra-style DSL for the [microcoap] library
-- **<EtherCard+coap.h>** // boilerplate for connecting the [EtherCard] library (driver for the very popular [ENC28J60] Ethernet module) with the [microcoap] library
+- **\<conatra.h>** // a Sinatra-style DSL for the [microcoap] library
+- **\<EtherCard+coap.h>** // boilerplate for connecting the [EtherCard] library (driver for the very popular [ENC28J60] Ethernet module) with the [microcoap] library
 
 [Sinatra]: http://www.sinatrarb.com
 [CoAP]: http://coap.technology

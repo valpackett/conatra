@@ -1,5 +1,7 @@
 // conatra.h -- a DSL for microcoap routes
 //
+// Here be dragons
+//
 // If you don't understand what the fsck is going on here, start with this:
 // https://en.wikipedia.org/wiki/X_Macro
 

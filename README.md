@@ -9,7 +9,7 @@ This allows you to create RESTful interfaces on IoT (Internet of Things) devices
 
 In the box:
 
-- **\<conatra.h>** // a Sinatra-style DSL for the [microcoap] library
+- **\<conatra.h>** // a Sinatra-style DSL for the [microcoap] library (using C preprocessor dark magic)
 - **\<EtherCard+coap.h>** // boilerplate for connecting the [EtherCard] library (driver for the very popular [ENC28J60] Ethernet module) with the [microcoap] library
 
 If you use a different networking module, please send a pull request with boilerplate necessary for supporting it!
@@ -41,9 +41,10 @@ static uint8_t mymac[] = { 0x74, 0x69, 0x69, 0x2D, 0x30, 0x31 };
 
 void setup(void) {
   if (ether.begin(sizeof Ethernet::buffer, mymac, 4) == 0)
-    Serial.println(F("Eth"));
+    Serial.println(F("Ethernet failed"));
   if (!ether.dhcpSetup())
-    Serial.println(F("DHCP"));
+    Serial.println(F("DHCP failed"));
+  ether.printIp("My IP: ", ether.myip);
   coap_ethercard_begin();
 }
 
@@ -51,6 +52,18 @@ void loop(void) {
   ether.packetLoop(ether.packetReceive());
   delay(50);
 }
+
+// We define our endpoints in the ROUTES macro using the ROUTE macro:
+// ROUTE(name, method, url, CoRE parameters, handler body)
+//
+// The name is used in C identifiers and doesn't
+// really matter, just has to be unique.
+//
+// If you don't want to list the endpoint in CoRE links:
+// ROUTE_HIDDEN(name, method, url, handler body)
+//
+// For responding, use one of the following macros:
+// CONTENT, NOT_FOUND, BAD_REQUEST, CHANGED
 
 #define ROUTES \
 ROUTE(hello, COAP_METHOD_GET, URL("tests", "hello"), ";if=\"test\"", { \
@@ -61,7 +74,18 @@ ROUTE(hello, COAP_METHOD_GET, URL("tests", "hello"), ";if=\"test\"", { \
 #include <conatra.h>
 ```
 
+Here's how you would interact over this example (using the [coap-cli] tool):
+
+```bash
+$ coap get coap://192.168.1.13/.well-known/core
+</tests/hello>;if="test"
+$ coap get coap://192.168.1.13/tests/hello
+Hi
+```
+
 For a full example, see the `examples/iotweather/iotweather.ino` sketch.
+
+[coap-cli]: https://github.com/mcollina/coap-cli
 
 ## Contributing
 

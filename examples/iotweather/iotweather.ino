@@ -91,7 +91,7 @@ void printInfoOnScreen() {
   lcd.print(pressure);
   lcd.print(F(" mmHg   "));
   for (uint8_t i = 0; i < 4; ++i) {
-    lcd.print( ether.myip[i], DEC );
+    lcd.print(ether.myip[i], DEC);
     if (i < 3)
       lcd.print(F("."));
   }

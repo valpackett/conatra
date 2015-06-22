@@ -60,8 +60,7 @@ void setup(void) {
     Serial.println(F("Eth"));
   if (!ether.dhcpSetup())
     Serial.println(F("DHCP"));
-  ether.udpServerListenOnPort(&udpCallback, 5683);
-  coap_setup();
+  coap_ethercard_begin();
 }
 
 static uint32_t timer;

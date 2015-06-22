@@ -4,7 +4,7 @@ uint8_t packetbuf[256];
 static uint8_t scratch_raw[32];
 static coap_rw_buffer_t scratch_buf = {scratch_raw, sizeof(scratch_raw)};
 
-void udpCallback(word myport, byte ip[4], unsigned int port, const char *data, word len) {
+void coap_udp_callback(word myport, byte ip[4], unsigned int port, const char *data, word len) {
 	uint8_t rc;
 	coap_packet_t pkt;
 	if (0 != (rc = coap_parse(&pkt, (uint8_t*)data, len))) {
@@ -26,4 +26,9 @@ void udpCallback(word myport, byte ip[4], unsigned int port, const char *data, w
 			ether.sendUdp((char*)packetbuf, rsplen, myport, ip, port);
 		}
 	}
+}
+
+void coap_ethercard_begin() {
+	ether.udpServerListenOnPort(&coap_udp_callback, 5683);
+	// coap_setup(); // It's empty in microcoap
 }

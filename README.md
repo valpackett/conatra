@@ -1,6 +1,6 @@
 # conatra [![unlicense](https://img.shields.io/badge/un-license-green.svg?style=flat)](http://unlicense.org)
 
-It's an easy to use C/C++ library for implementing [CoAP] / [CoRE] on microcontrollers, featuring [Sinatra]-style syntax!
+A C/C++ library for implementing [CoAP] / [CoRE] on microcontrollers, featuring [Sinatra]-style syntax!
 
 - CoAP is the Constrained Application Protocol, which is basically simplified and very compact binary HTTP over UDP.
 - CoRE is the Constrained RESTful Environments Link Format, which is basically the HTTP Link header as a response, not as a header.
@@ -11,6 +11,8 @@ In the box:
 
 - **\<conatra.h>** // a Sinatra-style DSL for the [microcoap] library
 - **\<EtherCard+coap.h>** // boilerplate for connecting the [EtherCard] library (driver for the very popular [ENC28J60] Ethernet module) with the [microcoap] library
+
+If you use a different networking module, please send a pull request with boilerplate necessary for supporting it!
 
 [Sinatra]: http://www.sinatrarb.com
 [CoAP]: http://coap.technology
@@ -42,8 +44,7 @@ void setup(void) {
     Serial.println(F("Eth"));
   if (!ether.dhcpSetup())
     Serial.println(F("DHCP"));
-  ether.udpServerListenOnPort(&udpCallback, 5683);
-  coap_setup();
+  coap_ethercard_begin();
 }
 
 void loop(void) {
@@ -61,7 +62,6 @@ ROUTE(hello, COAP_METHOD_GET, URL("tests", "hello"), ";if=\"test\"", { \
 ```
 
 For a full example, see the `examples/iotweather/iotweather.ino` sketch.
-
 
 ## Contributing
 

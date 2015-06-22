@@ -11,7 +11,7 @@
 #include <coap.h> // For some reason, must be included before the sensor stuff?!!?!?!
 #include <EtherCard+coap.h>
 
-byte Ethernet::buffer[400]; // If the program doesn't work, try increasing this
+byte Ethernet::buffer[400]; // If the program hangs, try increasing this
 static uint8_t mymac[] = { 0x74, 0x69, 0x69, 0x2D, 0x30, 0x31 };
 
 //// Sensor Config ////
@@ -125,6 +125,7 @@ void readAnalogSensors() {
 }
 
 void writeAnalogOutputs() {
+  analogWrite(BUZZER_PIN, 0);
   if (flame > FLAME_ALERT_THRESHOLD)
     beep();
 }

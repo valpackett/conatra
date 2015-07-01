@@ -11,6 +11,7 @@ In the box:
 
 - **\<conatra.h>** // a Sinatra-style DSL for the [microcoap] library (using C preprocessor dark magic)
 - **\<EtherCard+coap.h>** // boilerplate for connecting the [EtherCard] library (driver for the very popular [ENC28J60] Ethernet module) with the [microcoap] library
+- **\<WiFi+coap.h>** // boilerplate for connecting the [Arduino WiFi] library (for the [WiFi Shield] or the [ESP8266]) with the [microcoap] library
 
 If you use a different networking module, please send a pull request with boilerplate necessary for supporting it!
 
@@ -20,6 +21,9 @@ If you use a different networking module, please send a pull request with boiler
 [microcoap]: https://github.com/1248/microcoap
 [EtherCard]: https://github.com/jcw/ethercard
 [ENC28J60]: http://www.ebay.com/sch/i.html?_nkw=enc28j60
+[Arduino WiFi]: https://www.arduino.cc/en/Reference/WiFi
+[WiFi Shield]: https://www.arduino.cc/en/Main/ArduinoWiFiShield
+[ESP8266]: https://github.com/esp8266/Arduino
 
 ## Usage
 

@@ -42,7 +42,7 @@
 #define URL(...) _GET_URL_MACRO(__VA_ARGS__, URL5, URL4, URL3, URL2, URL1)(__VA_ARGS__)
 #define ROUTE_HIDDEN(name, method, path, body) ""
 #define ROUTE(name, method, path, meta, body) "<" path ">" meta ","
-static char* COAP_core_list =
+const char* COAP_core_list =
 COAP_ROUTES
 ;
 #undef URL1

@@ -1,4 +1,4 @@
-// EtherCard+coap.h -- boilerplate for connecting microcoap and EtherCard
+// WiFi+coap.h -- boilerplate for connecting microcoap and WiFi (official Arduino WiFi or ESP8266)
 
 #pragma once
 
@@ -10,14 +10,19 @@
 #define PACKET_BUF_SIZE 256
 #endif
 
+
 uint8_t packetbuf[PACKET_BUF_SIZE];
 static uint8_t scratch_raw[32];
 static coap_rw_buffer_t scratch_buf = {scratch_raw, sizeof(scratch_raw)};
+WiFiUDP COAP_udp;
 
-void coap_udp_callback(word myport, byte ip[4], unsigned int port, const char *data, word len) {
+void coap_wifi_loop() {
+	if (!COAP_udp.parsePacket()) return;
+	int len = COAP_udp.read(packetbuf, PACKET_BUF_SIZE);
+	if (len > 0) packetbuf[len] = 0;
 	uint8_t rc;
 	coap_packet_t pkt;
-	if (0 != (rc = coap_parse(&pkt, (uint8_t*)data, len))) {
+	if (0 != (rc = coap_parse(&pkt, packetbuf, len))) {
 #ifdef DEBUG
 		Serial.print("badpkt rc=");
 		Serial.println(rc, DEC);
@@ -33,12 +38,15 @@ void coap_udp_callback(word myport, byte ip[4], unsigned int port, const char *d
 			Serial.println(rc, DEC);
 #endif
 		} else {
-			ether.sendUdp((char*)packetbuf, rsplen, myport, ip, port);
+			COAP_udp.beginPacket(COAP_udp.remoteIP(), COAP_udp.remotePort());
+			COAP_udp.write(packetbuf, rsplen);
+			COAP_udp.endPacket();
 		}
 	}
 }
 
-void coap_ethercard_begin() {
-	ether.udpServerListenOnPort(&coap_udp_callback, COAP_PORT);
+
+void coap_wifi_begin() {
+	COAP_udp.begin(COAP_PORT);
 	// coap_setup(); // It's empty in microcoap
 }

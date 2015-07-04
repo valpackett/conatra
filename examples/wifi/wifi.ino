@@ -32,7 +32,7 @@ void loop(void) {
 }
 
 #define ROUTES \
-ROUTE(buzzer, COAP_METHOD_GET, URL("demo"), ";if=\"test\"", { \
+ROUTE(demo, COAP_METHOD_GET, URL("demo"), ";if=\"test\"", { \
   char rspc[3] = "OK"; \
   CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rspc); \
 })

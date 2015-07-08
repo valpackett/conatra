@@ -10,7 +10,7 @@ This allows you to create RESTful interfaces on IoT (Internet of Things) devices
 In the box:
 
 - **\<conatra.h>** // a Sinatra-style DSL for the [microcoap] library (using C preprocessor dark magic)
-- **\<EtherCard+coap.h>** // boilerplate for connecting the [EtherCard] library (driver for the very popular [ENC28J60] Ethernet module) with the [microcoap] library
+- **\<EtherCard+coap.h>** // boilerplate for connecting the [EtherCard] library (driver for the very popular [ENC28J60] Ethernet module) with the [microcoap] library // supports multicast!
 - **\<WiFi+coap.h>** // boilerplate for connecting the [Arduino WiFi] library (for the [WiFi Shield] or the [ESP8266]) with the [microcoap] library
 
 If you use a different networking module, please send a pull request with boilerplate necessary for supporting it!
@@ -50,6 +50,7 @@ void setup(void) {
     Serial.println(F("DHCP failed"));
   ether.printIp("My IP: ", ether.myip);
   coap_ethercard_begin();
+  coap_ethercard_begin_multicast();
 }
 
 void loop(void) {

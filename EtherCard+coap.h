@@ -19,7 +19,7 @@ void coap_udp_callback(word myport, byte ip[4], unsigned int port, const char *d
 	coap_packet_t pkt;
 	if (0 != (rc = coap_parse(&pkt, (uint8_t*)data, len))) {
 #ifdef DEBUG
-		Serial.print("badpkt rc=");
+		Serial.print(F("badpkt rc="));
 		Serial.println(rc, DEC);
 #endif
 	} else {
@@ -29,7 +29,7 @@ void coap_udp_callback(word myport, byte ip[4], unsigned int port, const char *d
 		memset(packetbuf, 0, rsplen);
 		if (0 != (rc = coap_build(packetbuf, &rsplen, &rsppkt))) {
 #ifdef DEBUG
-			Serial.print("buildfail rc=");
+			Serial.print(F("buildfail rc="));
 			Serial.println(rc, DEC);
 #endif
 		} else {
@@ -41,4 +41,13 @@ void coap_udp_callback(word myport, byte ip[4], unsigned int port, const char *d
 void coap_ethercard_begin() {
 	ether.udpServerListenOnPort(&coap_udp_callback, COAP_PORT);
 	// coap_setup(); // It's empty in microcoap
+}
+
+void coap_ethercard_begin_multicast() {
+	// Somehow this works! (Setting the broadcast IP to the group IP)
+	ENC28J60::enableMulticast();
+	EtherCard::broadcastip[0] = 224;
+	EtherCard::broadcastip[1] = 0;
+	EtherCard::broadcastip[2] = 1;
+	EtherCard::broadcastip[3] = 187;
 }

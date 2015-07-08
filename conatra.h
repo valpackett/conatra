@@ -20,6 +20,10 @@
 #define CHANGED(ctype, body) \
 	return coap_make_response(scratch, outpkt, (const uint8_t *)(body), strlen((body)), id_hi, id_lo, &inpkt->tok, COAP_RSPCODE_CHANGED, (ctype));
 
+#define IF_PAYLOAD if (inpkt->payload.len != 0)
+
+#define PAYLOAD ((const char*)inpkt->payload.p)
+
 #ifndef ROUTES
 #error "You need to #define ROUTES for conatra to work!"
 #endif
@@ -42,7 +46,7 @@
 #define URL(...) _GET_URL_MACRO(__VA_ARGS__, URL5, URL4, URL3, URL2, URL1)(__VA_ARGS__)
 #define ROUTE_HIDDEN(name, method, path, body) ""
 #define ROUTE(name, method, path, meta, body) "<" path ">" meta ","
-const char* COAP_core_list =
+const char COAP_core_list[] =
 COAP_ROUTES
 ;
 #undef URL1

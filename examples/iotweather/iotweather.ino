@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <EEPROM.h>
 
 //// Network Config ////
 
@@ -17,11 +18,7 @@ static uint8_t mymac[] = { 0x74, 0x69, 0x69, 0x2D, 0x30, 0x31 };
 //// Sensor Config ////
 
 #define FLAME_PIN             0     // analog
-#define FLAME_ALERT_THRESHOLD 100
-
 #define MQ2_PIN               2     // analog
-#define MQ2_ALERT_THRESHOLD   115
-
 #define PIR_PIN               8     // digital
 
 #include <Adafruit_Sensor.h>
@@ -39,15 +36,24 @@ Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085);
 
 #define BUZZER_PIN  5
 #define BUZZER_HIGH 30
+#define ALERT_BEEP_REPEAT_DELAY 2000
+
+//// Storage Config ////
+
+#define EEPROM_FLAME_ALERT      0
+#define EEPROM_MQ2_GAS_ALERT    sizeof(uint16_t)
 
 //// Data Memory ////
 
 static uint8_t  temp;
 static uint8_t  humidity;
-static uint8_t  flame;
-static uint8_t  mq2_gas;
+static uint16_t flame;
+static uint16_t mq2_gas;
 static bool     motion;
 static float    pressure;
+
+static uint16_t flame_alert;
+static uint16_t mq2_gas_alert;
 
 static uint32_t timer;
 static uint32_t last_alert_time;
@@ -56,6 +62,8 @@ static uint32_t last_alert_time;
 
 void setup(void) {
   last_alert_time = millis() + 20 * 1000; // Wait for the MQ2 to stabilize, do not beep
+  EEPROM.get(EEPROM_FLAME_ALERT, flame_alert);
+  EEPROM.get(EEPROM_MQ2_GAS_ALERT, mq2_gas_alert);
   bmp.begin();
   dht.begin();
   if (ether.begin(sizeof Ethernet::buffer, mymac, 4) == 0)
@@ -80,7 +88,7 @@ void loop(void) {
   if (timer % 2000 == 0) {
     readDigitalSensors();
   }
-  delay(50);
+  delay(20);
 }
 
 void readDigitalSensors() {
@@ -113,8 +121,8 @@ void readAnalogSensors() {
 
 void writeAnalogOutputs() {
   analogWrite(BUZZER_PIN, 0);
-  if ((flame > FLAME_ALERT_THRESHOLD || mq2_gas > MQ2_ALERT_THRESHOLD)
-      && millis() - last_alert_time > 1000) {
+  if ((flame > flame_alert || mq2_gas > mq2_gas_alert)
+      && millis() - last_alert_time > ALERT_BEEP_REPEAT_DELAY) {
     beep();
     last_alert_time = millis();
   }
@@ -129,12 +137,15 @@ void beep() {
 
 //// Network Endpoints ////
 
+const char rsp_ok[] = "OK";
+const char rsp_wtf[] = "WTF";
+
 #define ROUTES \
-ROUTE(temperature, COAP_METHOD_GET, URL("temperature"), ";if=\"sensor\";rt=\"c\"", { \
+ROUTE(temperature, COAP_METHOD_GET, URL("temp"), ";if=\"sensor\"", { \
   char rspc[3]; itoa(temp, rspc, 10); \
   CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rspc); \
 }) \
-ROUTE(humidity, COAP_METHOD_GET, URL("humidity"), ";if=\"sensor\";rt=\"percent\"", { \
+ROUTE(humidity, COAP_METHOD_GET, URL("humidity"), ";if=\"sensor\"", { \
   char rspc[3]; itoa(humidity, rspc, 10); \
   CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rspc); \
 }) \
@@ -142,22 +153,50 @@ ROUTE(pressure, COAP_METHOD_GET, URL("pressure"), ";if=\"sensor\";rt=\"mmhg\"", 
   char rspc[7]; dtostrf(pressure, 6, 2, rspc); \
   CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rspc); \
 }) \
+\
 ROUTE(flame, COAP_METHOD_GET, URL("flame"), ";if=\"sensor\"", { \
-  char rspc[3]; itoa(flame, rspc, 10); \
+  char rspc[5]; itoa(flame, rspc, 10); \
   CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rspc); \
 }) \
+ROUTE(flame_alert, COAP_METHOD_GET, URL("flame", "alert"), ";if=\"alert\"", { \
+  char rspc[5]; itoa(flame_alert, rspc, 10); \
+  CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rspc); \
+}) \
+ROUTE_HIDDEN(flame_alert_set, COAP_METHOD_PUT, URL("flame", "alert"), { \
+  IF_PAYLOAD { \
+    flame_alert = atoi(PAYLOAD); \
+    EEPROM.put(EEPROM_FLAME_ALERT, flame_alert); \
+    CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rsp_ok); \
+  } else { \
+    BAD_REQUEST(COAP_CONTENTTYPE_TEXT_PLAIN, rsp_wtf); \
+  } \
+}) \
+\
 ROUTE(gas, COAP_METHOD_GET, URL("gas"), ";if=\"sensor\"", { \
   char rspc[5]; itoa(mq2_gas, rspc, 10); \
   CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rspc); \
 }) \
+ROUTE(gas_alert, COAP_METHOD_GET, URL("gas", "alert"), ";if=\"alert\"", { \
+  char rspc[5]; itoa(mq2_gas_alert, rspc, 10); \
+  CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rspc); \
+}) \
+ROUTE_HIDDEN(gas_alert_set, COAP_METHOD_PUT, URL("gas", "alert"), { \
+  IF_PAYLOAD { \
+    mq2_gas_alert = atoi(PAYLOAD); \
+    EEPROM.put(EEPROM_MQ2_GAS_ALERT, mq2_gas_alert); \
+    CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rsp_ok); \
+  } else { \
+    BAD_REQUEST(COAP_CONTENTTYPE_TEXT_PLAIN, rsp_wtf); \
+  } \
+}) \
+\
 ROUTE(motion, COAP_METHOD_GET, URL("motion"), ";if=\"sensor\"", { \
   char rspc[2];  itoa(motion, rspc, 10); \
   CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rspc); \
 }) \
 ROUTE(buzzer, COAP_METHOD_POST, URL("buzzer"), ";if=\"alarm\"", { \
   beep(); \
-  char rspc[3] = "OK"; \
-  CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rspc); \
+  CONTENT(COAP_CONTENTTYPE_TEXT_PLAIN, rsp_ok); \
 })
 
 #include <conatra.h>

@@ -7,7 +7,7 @@
 #endif
 
 #ifndef PACKET_BUF_SIZE
-#define PACKET_BUF_SIZE 256
+#define PACKET_BUF_SIZE 190
 #endif
 
 
